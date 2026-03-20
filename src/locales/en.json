@@ -1,0 +1,10 @@
+{
+  "title": "WhatsApp Analyzer",
+  "subtitle": "Upload your chat, analyze it privately.",
+  "privacy_note": "Your data is never sent to a server, it stays on your device.",
+  "drop_file": "Drag and drop chat file here",
+  "select_file": "Select File",
+  "total_messages": "Total Messages",
+  "participants": "Participants",
+  "top_speakers": "Top Speakers"
+}
