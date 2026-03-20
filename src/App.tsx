@@ -35,6 +35,17 @@ function App() {
   const handleFile = async (file: File) => {
   if (!file) return;
 
+  // Dosya uzantısını kontrol et
+  const isTxt = file.name.endsWith('.txt');
+  const isZip = file.name.endsWith('.zip');
+
+  if (!isTxt && !isZip) {
+    alert(i18n.language === 'tr' 
+      ? 'Lütfen sadece .txt veya .zip dosyası yükleyin.' 
+      : 'Please upload only .txt or .zip files.');
+    return;
+  }
+
   const reader = new FileReader();
 
   // SENARYO 1: Kullanıcı direkt .txt yükledi
@@ -131,7 +142,7 @@ function App() {
               <input 
                 type="file" 
                 className="hidden" 
-                accept=".txt" 
+                accept=".txt,.zip,application/zip,application/x-zip-compressed" 
                 onChange={(e) => e.target.files && handleFile(e.target.files[0])} 
               />
             </label>
