@@ -207,7 +207,7 @@ function App() {
 
       {/* Footer */}
       <footer className="mt-auto pt-12 pb-6 text-gray-400 text-xs font-medium uppercase tracking-[0.2em]">
-        &copy; 2026 WP Röntgeni • All Rights Local
+        &copy; 2026 WP Röntgeni • All Rights Local • Mehmet Çelik
       </footer>
     </div>
   );
