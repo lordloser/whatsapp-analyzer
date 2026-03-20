@@ -27,10 +27,20 @@ function App() {
   };
 
   // İstatistik hesaplama (En çok konuşan ilk 10 kişi)
-  const chatStats = useMemo(() => {
-    if (messages.length === 0) return [];
-    return getMessageCountBySender(messages).slice(0, 10);
-  }, [messages]);
+// App.tsx içindeki useMemo kısmını tam olarak bu hale getir:
+const { topStats, totalParticipants, chartHeight } = useMemo(() => {
+  if (messages.length === 0) return { topStats: [], totalParticipants: 0, chartHeight: 0 };
+  
+  const allStats = getMessageCountBySender(messages);
+  // Grafikte sadece en çok konuşan ilk 100 kişiyi gösteriyoruz (Scroll için)
+  const limitedStats = allStats.slice(0, 100); 
+  
+  return {
+    topStats: limitedStats,
+    totalParticipants: allStats.length,
+    chartHeight: limitedStats.length * 45 // Her bar için 45px
+  };
+}, [messages]);
 
   const handleFile = async (file: File) => {
   if (!file) return;
@@ -170,58 +180,53 @@ function App() {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-400 uppercase tracking-wider">{t('participants')}</p>
-                <p className="text-3xl font-black text-gray-800 tracking-tight">{chatStats.length}</p>
+                <p className="text-3xl font-black text-gray-800 tracking-tight">{totalParticipants}</p>
               </div>
             </div>
           </div>
 
           {/* Grafik Kartı */}
-          <div className="bg-white p-6 sm:p-10 rounded-[2.5rem] shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-black text-gray-800 uppercase tracking-tight">
-                {t('top_speakers')}
-              </h3>
-            </div>
-            
-            <div className="h-[450px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chatStats} layout="vertical" margin={{ left: 20, right: 60, top: 20, bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
-                  <XAxis type="number" hide />
-                  <YAxis 
-                    dataKey="name" 
-                    type="category" 
-                    width={120} 
-                    tick={{ fontSize: 13, fontWeight: 700, fill: '#64748b' }} 
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip 
-                    cursor={{ fill: '#f8fafc', radius: 10 }}
-                    contentStyle={{ 
-                      borderRadius: '20px', 
-                      border: 'none', 
-                      boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
-                      padding: '12px 16px'
-                    }}
-                  />
-                  <Bar dataKey="value" radius={[0, 12, 12, 0]} barSize={32}>
-                    <LabelList 
-                      dataKey="value" 
-                      position="right" 
-                      fill="#94a3b8" 
-                      fontSize={13} 
-                      fontWeight={800}
-                      offset={12}
-                    />
-                    {chatStats.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+          {/* Grafik Kartı */}
+<div className="bg-white p-6 sm:p-10 rounded-[2.5rem] shadow-sm border border-gray-100">
+  <h3 className="text-xl font-black text-gray-800 uppercase tracking-tight mb-6">
+    {t('top_speakers')} ({topStats.length} Kişi)
+  </h3>
+  
+  {/* Kaydırma Çubuğu Burası: overflow-y-auto ve sabit yükseklik */}
+  <div className="h-[500px] overflow-y-auto pr-4 custom-scrollbar">
+    {/* İçerideki div'in boyu katılımcı sayısına göre uzayacak */}
+    <div style={{ height: `${chartHeight}px`, minHeight: '400px' }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart 
+          data={topStats} 
+          layout="vertical" 
+          margin={{ left: 20, right: 60, top: 10, bottom: 10 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+          <XAxis type="number" hide />
+          <YAxis 
+            dataKey="name" 
+            type="category" 
+            width={120} 
+            tick={{ fontSize: 12, fontWeight: 700, fill: '#64748b' }} 
+            axisLine={false}
+            tickLine={false}
+          />
+          <Tooltip 
+            cursor={{ fill: '#f8fafc', radius: 10 }}
+            contentStyle={{ borderRadius: '15px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+          />
+          <Bar dataKey="value" radius={[0, 10, 10, 0]} barSize={25}>
+            <LabelList dataKey="value" position="right" fill="#94a3b8" fontSize={11} fontWeight={800} offset={10} />
+            {topStats.map((_, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+</div>
 
           {/* Reset Butonu */}
           <button 
