@@ -11,6 +11,7 @@ import {
 import { parseWhatsAppChat } from './utils/parser';
 import { getMessageCountBySender } from './utils/analyzer';
 import type { Message } from './types/chat';
+import JSZip from 'jszip';
 
 const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -31,18 +32,41 @@ function App() {
     return getMessageCountBySender(messages).slice(0, 10);
   }, [messages]);
 
-  const handleFile = (file: File) => {
-    if (!file || !file.name.endsWith('.txt')) {
-      alert(t('error_invalid_file') || 'Lütfen geçerli bir .txt dosyası yükleyin.');
-      return;
-    }
-    const reader = new FileReader();
+  const handleFile = async (file: File) => {
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  // SENARYO 1: Kullanıcı direkt .txt yükledi
+  if (file.name.endsWith('.txt')) {
     reader.onload = (e) => {
       const text = e.target?.result as string;
       setMessages(parseWhatsAppChat(text));
     };
     reader.readAsText(file);
-  };
+  } 
+  // SENARYO 2: Kullanıcı WhatsApp'ın verdiği .zip dosyasını yükledi
+  else if (file.name.endsWith('.zip')) {
+    try {
+      const zip = new JSZip();
+      const contents = await zip.loadAsync(file);
+      
+      // Zip içindeki .txt dosyasını bul (Genelde adı _chat.txt veya WhatsApp Chat... .txt olur)
+      const chatFile = Object.values(contents.files).find(f => f.name.endsWith('.txt'));
+
+      if (chatFile) {
+        const text = await chatFile.async('string');
+        setMessages(parseWhatsAppChat(text));
+      } else {
+        alert('Zip içinde sohbet metni (.txt) bulunamadı!');
+      }
+    } catch (err) {
+      alert('Zip dosyası açılırken bir hata oluştu.');
+    }
+  } else {
+    alert('Lütfen .txt veya .zip formatında bir dosya yükleyin.');
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-8 px-4 sm:py-12">
